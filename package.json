@@ -1,0 +1,26 @@
+{
+  "name": "passport-authentication-util",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "nodemon ./express-tutorial/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Super-Rogatory/passport-authentication-util.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Super-Rogatory/passport-authentication-util/issues"
+  },
+  "homepage": "https://github.com/Super-Rogatory/passport-authentication-util#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.12"
+  }
+}
