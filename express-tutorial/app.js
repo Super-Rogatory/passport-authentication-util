@@ -1,34 +1,40 @@
 const express = require("express");
+const session = require("express-session");
+const passport = require("passport");
+const crypto = require("crypto");
+const path = require("path");
+const PostgresStore = require("connect-pg-simple")(session);
 
 const app = express();
 
-const firstMiddleware = (req, res, next) => {
-  try {
-    console.log("I am a middleware #1");
-  } catch (err) {
-    next(err);
-  }
-};
+// Environment Variables
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
-const secondMiddleware = (req, res, next) => {
-  try {
-    console.log("I am a middleware #2");
-  } catch (err) {
-    next(err);
-  }
-};
-const errorHandling = (err, req, res, next) => {
-  if (err) {
-    res.send("<h1>An error has occurred</h1>");
-  }
-};
-app.use(firstMiddleware);
-app.use(secondMiddleware);
-app.use(errorHandling);
+// Middleware for parsing and creating req.body
+app.use(express.json()); 
+app.use(express.urlencoded({ extended:true }));
 
-app.get("/", (req, res, next) => {
-  console.log("I am the main express middleware");
-  res.send("<h1>Hello World</h1>");
-});
+// Connecting Express Session middleware to postgres database
+app.use(session({
+    secret: process.env.SECRET,
+    resave: false,
+    saveUninitialized: true,
+    store: new PostgresStore({
+      conString: process.env.DB_STRING,
+    }),
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24,
+    },
+}));
 
+// Passport Authentication
+require('../config/passport');
+
+// Importing Routes
+app.use(require('../routes'));
+
+// Error Handling Middleware - doesn't exist yet
+
+
+// Server Listens...
 app.listen("8080", () => console.log("listening on port 8080"));
