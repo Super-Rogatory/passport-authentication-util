@@ -152,3 +152,102 @@ passport.deserializeUser(async (userId, done) => {
     }
 })
 ```
+
+# Examine Local Strategy Flow
+```
+app.post('/login', passport.authenticate('local', { successRedirect: '/', failureRedirect: '/login' }));
+```
+- ### Passport uses strategies to authenticate requests. Before asking Passport to authenticate a request, the strategy used by an application must be configured.
+```
+const verifyCallback = async (username, password, done) => {
+    // passport looks for username and password from req.body on a particular post request
+    // username is the value that we receive from the req.body of some login form.
+    try {
+        const user = await User.findOne({ where: { name: username }});
+        if(!user) return done(null, false); // if there is no user in the database, instruct passport to return 401.
+
+        const isValid = validatePassword(password, user.hash, user.salt); // puts password through verification function.
+        if(isValid) {
+            return done(null, user); // if login credentials are valid, redirect to successRedirect
+        } else {
+            return done(null, false); // redirects to failureRedirect
+        }
+    } catch (err) {
+        done(err);
+    }
+}
+const strategy = new LocalStrategy(verifyCallback);
+
+passport.use(strategy);
+```
+- ### Strategies require a verify callback. The purpose of this verify callback is to find the user we want to perform some authentication with.
+
+- ### If the credentials are valid, verify callback invokes done to supply passport with the user that authenticated.
+```
+return done(null, user);
+```
+
+- ### If the credentials are not valid (ie. the password is incorrect), done should be invoked with false instead of a user to indicate a failure. (authentication exception - this.. we expect)
+```
+return done(null, false);
+```
+
+- ### If the exception occured while verifying the credentials, done should be invoked with an error.  (server exception)
+```
+return done(err);
+```
+
+# Middleware
+
+- ### passport.initialize() middleware is required to initalize Passport.
+- ### passport.session() use if you want login sessions to persist.
+- ### **If enabled, be sure to use session() before passport.session() to ensure that the login session is restored in the correct order.**
+
+# More on Sessions
+
+- ### Typically, the credentials are used to authenticate a user during the login request and that's it. **If authentication succeeds, a session will be established and maintained via a cookie set in the user's browser.**
+- ### Each subsequent request will not contain credentials, but rather the unique cookie that identifies the session ->>>> 'connect.sid'
+
+# Serialize and Deserializing Users
+
+- ### Passport will serialize and deserialize user instances to and from the session.
+```
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
+
+passport.deserializeUser(async (userId, done) => {
+    try {
+        const user = await User.findByPk(userId);
+        done(null, user);
+    } catch (err) {
+        done(err);
+    }
+})
+```
+
+# Creating isAuth middleware, refactoring our protected route to include this middleware.
+## **We can path isAuth to ANY ROUTE THAT WE WANT TO PROTECT**
+
+- ### authMiddleware.js
+```
+const isAuth = (req, res, next) => {
+    if(req.isAuthenticated()) {
+        next();
+    } else {
+        res.send(401).json({ msg: 'You are not authorized to view this resource '});
+    }
+}
+
+const isAdmin = (req, res, next) => {
+
+}
+module.exports = {isAuth, isAdmin};
+``` 
+
+- ### index.js (all routes)
+```
+router.get("/protected-route", isAuth, (req, res, next) => {
+  res.send('You made it to the route.');
+});
+```

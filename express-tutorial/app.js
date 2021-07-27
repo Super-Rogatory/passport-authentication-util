@@ -33,6 +33,11 @@ require('../config/passport');
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.use((req, res, next) => {
+  //console.log(req.session); // created by the express session => session({options})
+  //console.log(req.user); // created by the passport middleware
+  next();
+})
 // Importing Routes
 app.use(require('../routes'));
 
