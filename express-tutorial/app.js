@@ -30,6 +30,9 @@ app.use(session({
 // Passport Authentication
 require('../config/passport');
 
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Importing Routes
 app.use(require('../routes'));
 

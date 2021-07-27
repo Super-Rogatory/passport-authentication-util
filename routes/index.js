@@ -1,9 +1,31 @@
 const express = require("express");
 const router = express.Router();
 const passport = require("passport");
-const passwordUtils = require("../lib/passwordUtils");
+const generatePassword = require("../lib/passwordUtils").generatePassword;
 const User = require("../db/models/User");
 
+/**
+ * -------------- POST ROUTES ----------------
+ */
+router.post('/login', passport.authenticate('local'), (req, res, next) => {});
+router.post("/register", async (req, res, next) => {
+  try {
+    const saltHash = generatePassword(req.body.password);
+
+    const salt = saltHash.salt;
+    const hash = saltHash.hash;
+    const newUser = await User.create({
+      name: req.body.username,
+      hash,
+      salt,
+    });
+    console.log(newUser);
+    await User.sync();
+    res.redirect("/login");
+  } catch (err) {
+    next(err);
+  }
+});
 /**
  * -------------- GET ROUTES ----------------
  */

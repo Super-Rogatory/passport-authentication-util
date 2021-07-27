@@ -13,5 +13,15 @@ const User = db.define('user', {
         type: Sequelize.STRING
     }
 });
+// Needed to actually create the User table.
+// const seed = async () => {
+//     try {
+//         await db.sync();
+//         console.log('Created User Table');
+//     } catch (err) {
+//         console.log('Something went wrong');
+//     }
+// }
 
+// seed();
 module.exports = User;
