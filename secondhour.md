@@ -67,3 +67,88 @@ function generatePassword(password) {
 }
 module.exports = { validatePassword, generatePassword };
 ```
+
+# Register | Login Routes
+```
+router.post('/login', passport.authenticate('local', { failureRedirect: '/login-failure', successRedirect: '/login-success'}));
+router.post("/register", async (req, res, next) => {
+  try {
+    const saltHash = generatePassword(req.body.password);
+
+    const salt = saltHash.salt;
+    const hash = saltHash.hash;
+    await User.create({
+      name: req.body.username,
+      hash,
+      salt,
+    });
+    await User.sync();
+    res.redirect("/login");
+  } catch (err) {
+    next(err);
+  }
+});
+```
+
+# Validate Password | Generate Password
+```
+const crypto = require('crypto');
+
+function validatePassword(password, hash, salt) {
+    const hashVerify = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+    return hash === hashVerify;
+}
+function generatePassword(password) {
+    const salt = crypto.randomBytes(32).toString('hex');
+    const genHash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+
+    return {
+        salt,
+        hash: genHash
+    }
+}
+module.exports = { validatePassword, generatePassword };
+```
+
+# Passport
+```
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const User = require('../db/models/User');
+const validatePassword = require('../lib/passwordUtils').validatePassword;
+
+
+const verifyCallback = async (username, password, done) => {
+    // passport looks for username and password from req.body on a particular post request
+    // username is the value that we receive from the req.body of some login form.
+    try {
+        const user = await User.findOne({ where: { name: username }});
+        if(!user) return done(null, false); // if there is no user in the database, instruct passport to return 401.
+
+        const isValid = validatePassword(password, user.hash, user.salt); // puts password through verification function.
+        if(isValid) {
+            return done(null, user); // if login credentials are valid, redirect to successRedirect
+        } else {
+            return done(null, false); // redirects to failureRedirect
+        }
+    } catch (err) {
+        done(err);
+    }
+}
+const strategy = new LocalStrategy(verifyCallback);
+
+passport.use(strategy);
+
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
+
+passport.deserializeUser(async (userId, done) => {
+    try {
+        const user = await User.findByPk(userId);
+        done(null, user);
+    } catch (err) {
+        done(err);
+    }
+})
+```

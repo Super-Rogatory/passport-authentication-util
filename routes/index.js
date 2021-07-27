@@ -7,19 +7,18 @@ const User = require("../db/models/User");
 /**
  * -------------- POST ROUTES ----------------
  */
-router.post('/login', passport.authenticate('local'), (req, res, next) => {});
+router.post('/login', passport.authenticate('local', { failureRedirect: '/login-failure', successRedirect: '/login-success'}));
 router.post("/register", async (req, res, next) => {
   try {
     const saltHash = generatePassword(req.body.password);
 
     const salt = saltHash.salt;
     const hash = saltHash.hash;
-    const newUser = await User.create({
+    await User.create({
       name: req.body.username,
       hash,
       salt,
     });
-    console.log(newUser);
     await User.sync();
     res.redirect("/login");
   } catch (err) {

@@ -2,10 +2,7 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const User = require('../db/models/User');
 const validatePassword = require('../lib/passwordUtils').validatePassword;
-const customFields = {
-    usernameField: 'uname',
-    passwordField: 'pw'
-};
+
 
 const verifyCallback = async (username, password, done) => {
     // passport looks for username and password from req.body on a particular post request
@@ -16,15 +13,15 @@ const verifyCallback = async (username, password, done) => {
 
         const isValid = validatePassword(password, user.hash, user.salt); // puts password through verification function.
         if(isValid) {
-            return done(null, user); // if login credentials are valid, return callback
+            return done(null, user); // if login credentials are valid, redirect to successRedirect
         } else {
-            return done(null, false);
+            return done(null, false); // redirects to failureRedirect
         }
     } catch (err) {
         done(err);
     }
 }
-const strategy = new LocalStrategy(customFields, verifyCallback);
+const strategy = new LocalStrategy(verifyCallback);
 
 passport.use(strategy);
 
