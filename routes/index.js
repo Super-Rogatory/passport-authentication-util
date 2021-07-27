@@ -11,7 +11,7 @@ const isAuth = require('./authMiddleware').isAuth;
 router.post('/login', passport.authenticate('local', { failureRedirect: '/login-failure', successRedirect: '/login-success'}));
 router.post("/register", async (req, res, next) => {
   try {
-    const saltHash = generatePassword(req.body.password);
+    const saltHash = generatePassword(req.body.password); // comes from <input type="password" name="password">
 
     const salt = saltHash.salt;
     const hash = saltHash.hash;
