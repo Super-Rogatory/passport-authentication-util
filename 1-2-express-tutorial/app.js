@@ -1,7 +1,6 @@
 const express = require("express");
 const session = require("express-session");
 const passport = require("passport");
-const crypto = require("crypto");
 const path = require("path");
 const PostgresStore = require("connect-pg-simple")(session);
 
