@@ -40,7 +40,7 @@ passport.use(strategy);
 - ### We make a POST request to login
 - ### That request gets intercepted by the passport middleware
 - ### Then passport populates the username and password variables in the verify callback.
-- ### Function runs, look up user in database, validate Passwword, etc.
+- ### Function runs, look up user in database, validate password, etc.
 - ### If all goes well, our passport middleware will resolve control to the next middleware in the sequence...letting us in the route.
 ## RECALL: IN app.js, we required in the configuration at require('../config/passport'); This pushes passport.use() into the middleware sequence in a specific route handler that we specify.
 
